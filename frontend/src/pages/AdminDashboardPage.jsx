@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaEye } from "react-icons/fa";
 // --- 1. NEW: We import the Link component from the router ---
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getAllReports } from "../api/apiService";
 import { formatDistanceToNow } from "date-fns";
 
@@ -26,8 +26,20 @@ const AdminDashboardPage = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // client-side guard: only Admins should access this page
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (!user || user.role !== 'Admin') {
+        navigate('/login');
+        return;
+      }
+    } catch {
+      navigate('/login');
+      return;
+    }
     const fetchReports = async () => {
       try {
         setLoading(true);
@@ -42,8 +54,8 @@ const AdminDashboardPage = () => {
       }
     };
 
-    fetchReports();
-  }, []);
+  fetchReports();
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 py-12 lg:py-20">

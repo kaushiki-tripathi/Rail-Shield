@@ -3,6 +3,9 @@ import AuthStatus from "./AuthStatus";
 import { FaTrainSubway } from "react-icons/fa6";
 // --- 1. We import both Link and useNavigate to handle all cases ---
 import { Link, useNavigate } from 'react-router-dom';
+import { logout as apiLogout } from '../api/apiService';
+import { useContext } from 'react';
+import AuthContext from '../contexts/AuthContext';
 
 // Your custom icons are unchanged
 const RailShieldIcon = () => (
@@ -41,6 +44,14 @@ function Navbar() {
     { name: "Contact", path: "/contact" },
   ];
 
+  const { user, logout } = useContext(AuthContext);
+
+  const handleLogout = async () => {
+    try { await apiLogout(); } catch { /* ignore network errors */ }
+    logout();
+    navigate('/');
+  };
+
   return (
     // Your beautiful navbar styling is unchanged
     <nav className="bg-gradient-to-r from-emerald-900 via-teal-600 to-teal-900 shadow-lg sticky top-0 z-50">
@@ -67,8 +78,28 @@ function Navbar() {
                 <span className="absolute left-0 -bottom-1 w-0 h-[2px] bg-emerald-300 transition-all group-hover:w-full"></span>
               </Link>
             ))}
+<<<<<<< HEAD
             
             <AuthStatus/>
+=======
+            {user ? (
+              <div className="flex items-center gap-3">
+                {user.role === 'Admin' && (
+                  <Link to="/admin" className="text-white font-medium">Dashboard</Link>
+                )}
+                <span className="text-white">{user.name}</span>
+                <button onClick={handleLogout} className="bg-white text-teal-700 px-3 py-1.5 rounded text-m font-bold shadow-md hover:bg-emerald-200 transition cursor-pointer">Logout</button>
+              </div>
+            ) : (
+              <Link to="/login">
+                <button
+                  className="bg-white text-teal-700 px-3 py-1.5 rounded text-m font-bold shadow-md hover:bg-emerald-200 transition cursor-pointer"
+                >
+                  Login/Signup
+                </button>
+              </Link>
+            )}
+>>>>>>> 188d3d2d8d57a93019249947f2e85128711d1307
           </div>
 
           <div className="md:hidden flex items-center">

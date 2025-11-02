@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React from 'react'
 import {BrowserRouter,Routes,Route} from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
 import HomePage from './pages/Homepage'
@@ -13,12 +13,17 @@ import AdminDashboardPage from './pages/AdminDashboardPage'
 import ReportDetailsPage from './pages/ReportDetailsPage'
 import Report from './pages/Report'
 import PrivacyPolicyPage from './pages/PrivacyPolicy'
+<<<<<<< HEAD
 import StatusPage from './pages/StatusPage'
+=======
+import { AuthProvider } from './contexts/AuthContext'
+>>>>>>> 188d3d2d8d57a93019249947f2e85128711d1307
 
 
 function App() {
   return (
     <BrowserRouter>
+    <AuthProvider>
     <div className='flex flex-col min-h-screen'>
       <Navbar />
         <main className="flex-grow">
@@ -78,6 +83,7 @@ function App() {
         </main>
         <Footer />
       </div>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

@@ -12,11 +12,11 @@ const userSchema = new mongoose.Schema({
         enum: ['Passenger', 'Admin'],
         required: true,
     },
-    mobileNumber: {
-        type: String,
-        unique: true,
-        sparse: true,
-    },
+    // mobileNumber: {
+    //     type: String,
+    //     unique: true,
+    //     sparse: true,
+    // },
     email: {
         type: String,
         unique: true,
@@ -31,6 +31,9 @@ const userSchema = new mongoose.Schema({
     },
     otpExpires: {
         type: Date,
+    },
+    refreshToken: {
+        type: String,
     },
     isVerified: {
         type: Boolean,
