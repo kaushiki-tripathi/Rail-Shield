@@ -14,43 +14,43 @@ import { sendPassengerOtp, verifyPassengerOtp } from "../api/apiService";
 
 const LoginPage = () => {
   const [view, setView] = useState("passenger");
-  const [passengerStep, setPassengerStep] = useState("enterMobile");
+  const [passengerStep, setPassengerStep] = useState("enterEmail");
   const [formData, setFormData] = useState({
     name: "",
-    mobileNumber: "",
+    email: "",
     otp: "",
     adminEmail: "",
     adminPassword: "",
   });
   
-  const [mobileStatus, setMobileStatus] = useState('none');
+  const [emailStatus, setEmailStatus] = useState('none');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate(); // Get the navigate function
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (name === 'mobileNumber') {
-        const mobileRegex = /^\d{10}$/;
-        if (mobileRegex.test(value)) {
-            setMobileStatus('valid');
-        } else if (value === '') {
-            setMobileStatus('none');
-        } else {
-            setMobileStatus('invalid');
-        }
+  if (name === 'email') {
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    if (emailRegex.test(value)) {
+      setEmailStatus('valid');
+    } else if (value === '') {
+      setEmailStatus('none');
+    } else {
+      setEmailStatus('invalid');
     }
+  }
   };
 
   const handlePassengerSubmit = async (e) => {
     e.preventDefault();
-    if (mobileStatus !== 'valid') {
-        alert("Please enter a valid 10-digit mobile number.");
+  if (emailStatus !== 'valid' || !formData.name) {
+    alert("Please enter a valid name and email.");
         return; 
     }
     setIsSubmitting(true);
     try {
-        const passengerData = { name: formData.name, mobileNumber: formData.mobileNumber };
+    const passengerData = { name: formData.name, email: formData.email };
         const response = await sendPassengerOtp(passengerData);
         console.log(response.data.message);
         setPassengerStep("enterOtp");
@@ -69,16 +69,18 @@ const LoginPage = () => {
     setIsSubmitting(true);
     try {
         const otpData = {
-            mobileNumber: formData.mobileNumber,
+      email: formData.email,
             otp: formData.otp,
         };
         // We call the verification API
         const response = await verifyPassengerOtp(otpData);
         
         // On success, the backend sends a token. We save it.
-        const { token, user } = response.data;
-        localStorage.setItem('token', token); // Save the "I-Card"
-        localStorage.setItem('user', JSON.stringify(user));
+    const { accessToken, user } = response.data;
+    // Save access token in memory + localStorage via apiService
+    const { setAccessToken } = await import('../api/apiService');
+    setAccessToken(accessToken);
+    localStorage.setItem('user', JSON.stringify(user));
 
         alert('Login Successful! Welcome, ' + user.name);
         // Redirect the user to the homepage after successful login
@@ -101,9 +103,9 @@ const LoginPage = () => {
   
   const toggleView = () => {
     setView((prevView) => (prevView === "passenger" ? "admin" : "passenger"));
-    setFormData({ name: "", mobileNumber: "", otp: "", adminEmail: "", adminPassword: "" });
-    setPassengerStep("enterMobile");
-    setMobileStatus('none');
+  setFormData({ name: "", email: "", otp: "", adminEmail: "", adminPassword: "" });
+  setPassengerStep("enterEmail");
+  setEmailStatus('none');
   };
 
   return (
@@ -113,7 +115,7 @@ const LoginPage = () => {
           
           {view === "passenger" && (
             <div>
-              {passengerStep === "enterMobile" ? (
+              {passengerStep === "enterEmail" ? (
                 <>
                   <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-800">Passenger Login</h1>
@@ -125,12 +127,12 @@ const LoginPage = () => {
                       <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition"/>
                     </div>
                     <div className="relative">
-                      <FaMobileAlt className="absolute top-3.5 left-4 text-gray-400" />
-                      <input type="tel" name="mobileNumber" placeholder="10-Digit Mobile Number" value={formData.mobileNumber} onChange={handleChange} required maxLength="10" 
+                      <FaEnvelope className="absolute top-3.5 left-4 text-gray-400" />
+                      <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} required 
                         className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition" />
                       <div className="absolute top-3.5 right-4">
-                        {mobileStatus === 'valid' && <FaCheckCircle className="text-green-500" />}
-                        {mobileStatus === 'invalid' && <FaTimesCircle className="text-red-500" />}
+                        {emailStatus === 'valid' && <FaCheckCircle className="text-green-500" />}
+                        {emailStatus === 'invalid' && <FaTimesCircle className="text-red-500" />}
                       </div>
                     </div>
                     <button 
@@ -146,7 +148,7 @@ const LoginPage = () => {
                  <>
                     <div className="text-center mb-8">
                         <h2 className="text-3xl font-bold text-gray-800">Verify OTP</h2>
-                        <p className="text-gray-500 mt-2">An OTP has been sent to your console, {formData.mobileNumber}.</p>
+                        <p className="text-gray-500 mt-2">An OTP has been sent to {formData.email}.</p>
                     </div>
                     <form onSubmit={handleOtpSubmit} className="mt-8 space-y-6">
                         <div className="relative">
@@ -161,7 +163,7 @@ const LoginPage = () => {
                             {isSubmitting ? 'Verifying...' : 'Login'}
                         </button>
                     </form>
-                    <button onClick={() => setPassengerStep('enterMobile')} className="text-center text-sm text-gray-600 mt-4 w-full hover:underline">Go Back</button>
+                    <button onClick={() => setPassengerStep('enterEmail')} className="text-center text-sm text-gray-600 mt-4 w-full hover:underline">Go Back</button>
                  </>
               )}
             </div>

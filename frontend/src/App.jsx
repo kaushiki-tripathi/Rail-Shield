@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React from 'react'
 import {BrowserRouter,Routes,Route} from 'react-router-dom'
 import HomePage from './pages/Homepage'
 import Navbar from './components/Navbar'
@@ -12,11 +12,13 @@ import AdminDashboardPage from './pages/AdminDashboardPage'
 import ReportDetailsPage from './pages/ReportDetailsPage'
 import Report from './pages/Report'
 import PrivacyPolicyPage from './pages/PrivacyPolicy'
+import { AuthProvider } from './contexts/AuthContext'
 
 
 function App() {
   return (
     <BrowserRouter>
+    <AuthProvider>
     <div className='flex flex-col min-h-screen'>
       <Navbar />
         <main className="flex-grow">
@@ -36,6 +38,7 @@ function App() {
         </main>
         <Footer />
       </div>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

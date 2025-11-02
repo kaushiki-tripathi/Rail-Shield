@@ -1,10 +1,12 @@
 import express from 'express';
 import EmergencyReport from "../models/EmergencyReport.js";
+import { verifyToken, requireRole } from '../middleware/authMiddleware.js';
+import { validateReport, validateUpdateStatus } from '../middleware/validate.js';
 
 const router = express.Router();
 
 // @route   POST /api/reports (Aapka yeh code bilkul sahi hai)
-router.post('/', async (req, res) => {
+router.post('/', validateReport, async (req, res) => {
   try {
     const newReport = new EmergencyReport({
       emergencyType: req.body.emergencyType,
@@ -22,7 +24,7 @@ router.post('/', async (req, res) => {
 });
 
 // @route   GET /api/reports (Yeh bhi bilkul sahi hai)
-router.get('/', async (req, res) => {
+router.get('/', verifyToken, requireRole('Admin'), async (req, res) => {
   try {
     const reports = await EmergencyReport.find().sort({ timestamp: -1 });
     res.json(reports);
@@ -47,22 +49,22 @@ router.get('/:id', async (req, res) => {
 // --- YEH NAYA FUNCTION HAI JO HUM ADD KAR RAHE HAIN ---
 // @route   PUT /api/reports/:id
 // @desc    Update the status of a report
-router.put('/:id', async (req, res) => {
-    try {
-        const { status } = req.body; // Naya status frontend se aayega
-        const updatedReport = await EmergencyReport.findByIdAndUpdate(
-            req.params.id,
-            { status: status }, // Database mein status ko update karo
-            { new: true } // Update hone ke baad naya report waapis bhejo
-        );
-        if (!updatedReport) {
-            return res.status(404).json({ message: 'Report not found' });
-        }
-        res.json(updatedReport);
-    } catch (error) {
-        console.error("Backend Error on Update:", error);
-        res.status(500).json({ message: 'Server Error', error: error.message });
+router.put('/:id', verifyToken, requireRole('Admin'), validateUpdateStatus, async (req, res) => {
+  try {
+    const { status } = req.body; // Naya status frontend se aayega
+    const updatedReport = await EmergencyReport.findByIdAndUpdate(
+      req.params.id,
+      { status: status }, // Database mein status ko update karo
+      { new: true } // Update hone ke baad naya report waapis bhejo
+    );
+    if (!updatedReport) {
+      return res.status(404).json({ message: 'Report not found' });
     }
+    res.json(updatedReport);
+  } catch (error) {
+    console.error("Backend Error on Update:", error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
 });
 
 export default router;
