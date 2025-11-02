@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const emergencyReportSchema = new mongoose.Schema({
   // --- NEW: Added a section for user details ---
-  passengerDetails: {
+  passehieldngerDetails: {
     name: { type: String, required: true },
     contactNumber: { type: String, required: true },
   },

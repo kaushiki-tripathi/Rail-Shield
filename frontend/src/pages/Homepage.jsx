@@ -1,8 +1,35 @@
-import {React,useState,useEffect} from "react";
+import { React, useState, useEffect } from "react";
+import axios from "axios";
 import { FaTrainSubway } from "react-icons/fa6";
 import { FaUserShield, FaExclamationTriangle, FaDesktop } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
+// The SosButton component now correctly accepts an `onClick` prop
+const SosButton = ({ onClick }) => {
+  return (
+    <div className="fixed bottom-8 right-8 z-50">
+      <button
+        className="bg-red-600 hover:bg-red-700 text-white font-bold py-6 px-6 rounded-full shadow-lg transition-transform transform hover:scale-110 active:scale-95 animate-pulse-slow cursor-pointer"
+        onClick={onClick}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-10 w-10"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+};
+
+// All other components (FeatureCard, StepCard) remain unchanged
 const FeatureCard = ({ icon, title, description }) => (
   <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-xl transform hover:-translate-y-5 transition-all duration-300 cursor-pointer">
     <div className="flex items-center justify-center h-12 w-12 rounded-full bg-teal-100 text-teal-700 mb-5">
@@ -23,6 +50,7 @@ const StepCard = ({ number, title, description }) => (
   </div>
 );
 
+// The main HomePage component now contains all the necessary logic
 function HomePage() {
   const [trainPositions, setTrainPositions] = useState([]);
   const navigate = useNavigate();
@@ -37,9 +65,86 @@ function HomePage() {
     setTrainPositions(icons);
   }, []);
 
+  // --- The `handleSosClick` logic is correctly defined here ---
+  const handleSosClick = async () => {
+    // ----------------------------------------------------
+    // START OF AUTHENTICATION LOGIC (NEW CODE)
+    // ----------------------------------------------------
+    let passengerId = null;
+    let passengerName = "Anonymous";
+    let passengerContact = "0000000000";
+
+    const userStorage = localStorage.getItem("user");
+    if (userStorage) {
+      try {
+        const user = JSON.parse(userStorage);
+        // Retrieving the user's ID, Name, and Mobile Number from local storage
+        passengerId = user.id || user._id; // Use ID to link to the user record
+        passengerName = user.name || "Logged-in User";
+        passengerContact = user.mobileNumber || "Contact Unavailable";
+      } catch (e) {
+        console.error("Error parsing user data from local storage", e);
+      }
+    }
+
+    if (!passengerId) {
+      // If no user is logged in, alert and redirect them to login first
+      alert("Please log in or register to send an authenticated SOS alert.");
+      navigate("/login");
+      return;
+    }
+
+    const passengerDetails = {
+      name: passengerName,
+      contactNumber: passengerContact,
+    };
+    // ----------------------------------------------------
+    // END OF AUTHENTICATION LOGIC
+    // ----------------------------------------------------
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            // Send the data to our backend API with the now authenticated details
+            const response = await axios.post(
+              "http://localhost:5000/api/reports",
+              {
+                emergencyType: "SOS_ALERT",
+                location: {
+                  latitude,
+                  longitude,
+                },
+                trainDetails: { pnr: "N/A", trainNumber: "N/A", coach: "N/A" },
+                description: "SOS button pressed by passenger.", // --- UPDATE THE PAYLOAD WITH AUTHENTICATED DATA ---
+                passenger: passengerId, // This links the report to the User document
+                passengerDetails: passengerDetails, // This puts the name/contact right on the report
+              }
+            );
+            console.log("SOS alert sent successfully:", response.data);
+            navigate("/status");
+          } catch (error) {
+            console.error("Error sending SOS alert:", error);
+            alert(
+              "Failed to send alert. Please try again or call emergency contacts."
+            );
+          }
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          alert(
+            "Unable to get your location. Please check your browser settings."
+          );
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by this browser.");
+    }
+  };
 
   return (
-    <div className=" bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 relative overflow-hidden">
+    <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full z-0 pointer-events-none opacity-15">
         {trainPositions.map((icon, i) => (
           <FaTrainSubway
@@ -47,7 +152,7 @@ function HomePage() {
             className="text-white"
             style={{
               fontSize: `${icon.size}px`,
-              position: 'absolute',
+              position: "absolute",
               top: icon.top,
               left: icon.left,
               transform: `rotate(${icon.rotate}deg)`,
@@ -83,7 +188,6 @@ function HomePage() {
           <h2 className="text-3xl font-bold text-white tracking-tight mb-8 text-center">
             Features
           </h2>
-          {/* The grid will hold our cards */}
           <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
             <FeatureCard
               icon={<FaUserShield size={30} />}
@@ -144,6 +248,9 @@ function HomePage() {
           Report an Emergency
         </button>
       </section>
+
+      {/* --- Pass the `handleSosClick` function to the SosButton component --- */}
+      <SosButton onClick={handleSosClick} />
     </div>
   );
 }

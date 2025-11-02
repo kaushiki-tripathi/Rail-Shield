@@ -6,7 +6,7 @@ const router = express.Router();
 
 // @route   POST /api/auth/register-passenger
 // Humne ismein se Twilio ka code hata diya hai
-router.post('/register-passenger', async (req, res) => {
+router.post('/register', async (req, res) => {
     const { name, mobileNumber } = req.body;
 
     if (!name || !mobileNumber) {

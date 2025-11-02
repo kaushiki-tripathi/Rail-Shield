@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import AuthStatus from "./AuthStatus";
 import { FaTrainSubway } from "react-icons/fa6";
 // --- 1. We import both Link and useNavigate to handle all cases ---
 import { Link, useNavigate } from 'react-router-dom';
@@ -66,13 +67,8 @@ function Navbar() {
                 <span className="absolute left-0 -bottom-1 w-0 h-[2px] bg-emerald-300 transition-all group-hover:w-full"></span>
               </Link>
             ))}
-            <Link to="/login">
-              <button
-                className="bg-white text-teal-700 px-3 py-1.5 rounded text-m font-bold shadow-md hover:bg-emerald-200 transition cursor-pointer"
-              >
-                Login/Signup
-              </button>
-            </Link>
+            
+            <AuthStatus/>
           </div>
 
           <div className="md:hidden flex items-center">
